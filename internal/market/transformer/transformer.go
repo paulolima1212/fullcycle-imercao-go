@@ -17,3 +17,33 @@ func TransformerInput(input dto.TradeInput) *entity.Order {
 
 	return order
 }
+
+func TransformerOutput(order *entity.Order) *dto.OrderOutput {
+	output := &dto.OrderOutput{
+		OrderID:    order.ID,
+		InvestorID: order.Investor.ID,
+		AssetID:    order.Asset.ID,
+		OrderType:  order.OrderType,
+		Partial:    order.PendingShares,
+		Shares:     order.Shares,
+	}
+
+	var transactionsOutput []*dto.TransactionOutput
+
+	for _, t := range order.Transactions {
+		transactionOutput := &dto.TransactionOutput{
+			TransactionID: t.ID,
+			BuyerID:       t.BuyingOrder.ID,
+			SellerID:      t.SellingOrder.ID,
+			AssetID:       t.SellingOrder.Asset.ID,
+			Price:         t.Price,
+			Shares:        t.SellingOrder.Shares - t.SellingOrder.PendingShares,
+		}
+
+		transactionsOutput = append(transactionsOutput, transactionOutput)
+
+	}
+	output.TransactionOutput = transactionsOutput
+
+	return output
+}
